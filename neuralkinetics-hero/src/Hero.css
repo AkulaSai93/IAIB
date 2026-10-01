@@ -1,0 +1,318 @@
+/* ---------------------------------------------------------------
+   Mobile-first. Desktop overrides live in the 768px block below.
+   --------------------------------------------------------------- */
+
+.nk-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+/* ---------- background video ---------- */
+
+.nk-video-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  place-items: center;
+}
+
+.nk-video-wrap {
+  width: 80%;
+  height: 80%;
+}
+
+.nk-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ---------- navbar ---------- */
+
+.nk-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.nk-nav > * {
+  pointer-events: auto;
+}
+
+.nk-nav-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nk-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #000000;
+}
+
+.nk-logo {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.nk-brand-text {
+  display: none;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.nk-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border: none;
+  border-radius: 9999px;
+  background: #000000;
+}
+
+.nk-menu-circle {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #000000;
+}
+
+.nk-menu-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.nk-tags {
+  display: none;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background: #f4f4f6;
+}
+
+.nk-tag-text {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+}
+
+.nk-adaptive {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 9999px;
+  background: #f4f4f6;
+}
+
+.nk-adaptive-circle {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: #000000;
+}
+
+.nk-grid-icon {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.nk-adaptive-label {
+  display: none;
+  padding-right: 12px;
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+}
+
+/* ---------- footer ---------- */
+
+.nk-footer {
+  position: relative;
+  z-index: 30;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  padding: 80px 16px 24px;
+  background: linear-gradient(
+    to top,
+    #ffffff 0%,
+    rgba(255, 255, 255, 0.8) 50%,
+    transparent 100%
+  );
+}
+
+.nk-footer-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.nk-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.nk-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #000000;
+  flex-shrink: 0;
+}
+
+.nk-heading {
+  margin: 0;
+  font-weight: 300;
+  font-size: clamp(2rem, 8vw, 4.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #000000;
+}
+
+.nk-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.nk-btn {
+  font-size: 13px;
+  font-weight: 400;
+  padding: 11px 22px;
+  border-radius: 9999px;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.nk-btn-solid {
+  border: none;
+  background: #000000;
+  color: #ffffff;
+}
+
+.nk-btn-solid:hover {
+  opacity: 0.85;
+}
+
+.nk-btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  color: #000000;
+}
+
+.nk-btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.nk-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nk-pill {
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 400;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------
+   Desktop
+   --------------------------------------------------------------- */
+
+@media (min-width: 768px) {
+  .nk-video-wrap {
+    width: 100%;
+    height: 100%;
+  }
+
+  .nk-nav {
+    padding: 24px 32px;
+  }
+
+  .nk-nav-side {
+    gap: 12px;
+  }
+
+  .nk-logo {
+    width: 26px;
+    height: 26px;
+  }
+
+  .nk-brand-text {
+    display: inline;
+  }
+
+  .nk-menu-circle,
+  .nk-adaptive-circle {
+    width: 32px;
+    height: 32px;
+  }
+
+  .nk-tags {
+    display: flex;
+  }
+
+  .nk-adaptive-label {
+    display: inline;
+  }
+
+  .nk-footer {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 140px 32px 32px;
+  }
+
+  .nk-heading {
+    font-size: clamp(2.5rem, 5.5vw, 4.5rem);
+  }
+}

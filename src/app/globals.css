@@ -1,0 +1,497 @@
+@import "tailwindcss";
+
+@theme {
+  /* Palette lifted from the Figma frame */
+  --color-canvas: #fcfcfa;
+  --color-brand: #e7000b;
+  --color-ink: #121212;
+  --color-muted: #444444;
+  --color-hairline: #e5e5e5;
+
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-grotesk: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-ui: Helvetica, Arial, ui-sans-serif, system-ui, sans-serif;
+  --font-blocky: var(--font-archivo), "Arial Black", Impact, sans-serif;
+  --font-hand: var(--font-caveat), "Bradley Hand", cursive;
+  --font-code: var(--font-courier-prime), "Courier New", monospace;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+
+/*
+ * Figma draws the buttons with an uneven border (1px top/left, 3-4px
+ * right/bottom) to fake a hard drop shadow. Encapsulated here so the two
+ * sizes stay in sync.
+ */
+@utility hard-edge {
+  border-style: solid;
+  border-color: #000;
+  border-width: 1px 3px 3px 1px;
+}
+
+@utility hard-edge-lg {
+  border-style: solid;
+  border-color: #000;
+  border-width: 1.5px 4.5px 4.5px 1.5px;
+}
+
+/* Gentle drift for the decorative AI marks in the hero. */
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--tilt, 0deg));
+  }
+  50% {
+    transform: translateY(-16px) rotate(calc(var(--tilt, 0deg) * -1));
+  }
+}
+
+.float-soft {
+  animation-name: float-soft;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  transform: rotate(var(--tilt, 0deg));
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-soft {
+    animation: none;
+  }
+}
+
+/*
+ * Code stickers: a die-cut look built from two stacked outlines — a cream
+ * inner rim and a thicker white cut line behind it. `paint-order` puts each
+ * stroke behind its own fill so the letterforms stay sharp. Flat, no shadow.
+ */
+.sticker {
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-code);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  /* Pull words together so the cut line fuses into one sticker. */
+  word-spacing: -0.14em;
+}
+
+.sticker > span {
+  display: block;
+  paint-order: stroke fill;
+}
+
+.sticker > .sticker-cut {
+  position: absolute;
+  inset: 0;
+  color: #fff;
+  -webkit-text-stroke: 0.4em #fff;
+}
+
+.sticker > .sticker-face {
+  position: relative;
+  color: #9c1f14;
+  -webkit-text-stroke: 0.2em #f1e4d9;
+}
+
+/* Scroll-reveal: hidden until the observer marks the element as in view. */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.65s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal[data-revealed="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/*
+ * Hype stickers — heavy slanted caps with a magenta + black hard offset and
+ * a white die-cut edge. The cut layers are stacked behind every face so a
+ * lower line's outline can't paint over the line above it.
+ */
+.hype {
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-blocky);
+  font-weight: 900;
+  line-height: 0.94;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transform-origin: center;
+}
+
+.hype-line {
+  display: block;
+  paint-order: stroke fill;
+}
+
+.hype-line + .hype-line {
+  margin-left: 0.14em;
+}
+
+.hype-cutstack {
+  position: absolute;
+  inset: 0;
+}
+
+.hype-cut {
+  color: #fff;
+  -webkit-text-stroke: 0.3em #fff;
+}
+
+.hype-face {
+  -webkit-text-stroke: 0.075em #111111;
+  text-shadow:
+    0.045em 0.05em 0 #d6228c,
+    0.095em 0.105em 0 #111111;
+}
+
+.hype-faces,
+.hype-cutstack {
+  display: block;
+  transform: skewX(-9deg);
+}
+
+.hype-streaks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hype-streaks i {
+  position: absolute;
+  height: 4px;
+  border-radius: 2px;
+}
+
+/* Each registration question slides in as it becomes current. */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.step-in {
+  animation: step-in 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-in {
+    animation: none;
+  }
+}
+
+/* ---- daily-problem mascot ---------------------------------------- *
+ * The language logo is the animation: it breathes, its halves drift in
+ * opposite directions, and it blinks.
+ * ------------------------------------------------------------------ */
+
+@keyframes mascot-breathe {
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(1.035) translateY(-4px);
+  }
+}
+
+@keyframes mascot-drift-a {
+  0%,
+  100% {
+    transform: rotate(-2.5deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+@keyframes mascot-drift-b {
+  0%,
+  100% {
+    transform: rotate(180deg) rotate(2.5deg);
+  }
+  50% {
+    transform: rotate(180deg) rotate(-2deg);
+  }
+}
+
+@keyframes mascot-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+
+.mascot {
+  animation: mascot-breathe 4.5s ease-in-out infinite;
+  transition: filter 0.4s ease;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.12));
+}
+
+.mascot-awake {
+  animation-duration: 2.4s;
+  filter: drop-shadow(0 14px 26px rgba(231, 0, 11, 0.28));
+}
+
+.mascot-half-a {
+  transform-origin: 60px 60px;
+  animation: mascot-drift-a 6s ease-in-out infinite;
+}
+
+/* the JS mark's second group isn't rotated, so it only needs the drift */
+.mascot-half-b {
+  transform-origin: 60px 60px;
+  animation: mascot-drift-a 6s ease-in-out infinite reverse;
+}
+
+svg .mascot-half-b[transform] {
+  animation-name: mascot-drift-b;
+}
+
+.mascot-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mascot-blink 6s ease-in-out infinite;
+}
+
+.mascot button:hover .mascot,
+.group:hover .mascot {
+  animation-duration: 1.8s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot,
+  .mascot-half-a,
+  .mascot-half-b,
+  .mascot-eye {
+    animation: none;
+  }
+}
+
+/* Profile panel slides in from the right. */
+@keyframes panel-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.panel-in {
+  animation: panel-in 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-in {
+    animation: none;
+  }
+}
+
+/* The sidekick's little idle bob and blink. */
+@keyframes bot-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes bot-blink {
+  0%,
+  90%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.15);
+  }
+}
+
+.bot-bob {
+  animation: bot-bob 2.6s ease-in-out infinite;
+}
+
+.bot-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bot-blink 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bot-bob,
+  .bot-eye {
+    animation: none;
+  }
+}
+
+/* ---- theme set dressing ------------------------------------------ */
+
+/* The pair moves as one unit so the gap between them never changes. */
+@keyframes chase-across {
+  from {
+    transform: translateX(-260px);
+  }
+  to {
+    transform: translateX(calc(100vw + 60px));
+  }
+}
+
+@keyframes char-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1.5deg);
+  }
+}
+
+@keyframes char-leg {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes char-tail {
+  0%,
+  100% {
+    transform: rotate(-7deg);
+  }
+  50% {
+    transform: rotate(9deg);
+  }
+}
+
+.chase-track {
+  position: fixed;
+  right: 0;
+  bottom: 14px;
+  left: 0;
+  z-index: 60;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.chase-pair {
+  display: flex;
+  align-items: flex-end;
+  gap: 42px;
+  width: max-content;
+  animation: chase-across 9s linear infinite;
+}
+
+.char-bob {
+  transform-box: fill-box;
+  transform-origin: 50% 90%;
+  animation: char-bob 0.42s ease-in-out infinite;
+}
+
+.char-legs rect {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: char-leg 0.42s ease-in-out infinite;
+}
+
+.char-legs .char-leg-b {
+  animation-delay: -0.21s;
+}
+
+.char-tail {
+  transform-box: fill-box;
+  transform-origin: 100% 50%;
+  animation: char-tail 0.62s ease-in-out infinite;
+}
+
+/* drifting petals / embers */
+@keyframes drift-fall {
+  from {
+    transform: translateY(-12vh) rotate(0deg);
+    opacity: 0;
+  }
+  10%,
+  80% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(105vh) rotate(420deg);
+    opacity: 0;
+  }
+}
+
+.drift-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.drift-layer span {
+  position: absolute;
+  top: 0;
+  animation-name: drift-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.drift-petal {
+  width: 12px;
+  height: 12px;
+  border-radius: 12px 2px 12px 2px;
+  background: #f4a9c4;
+  opacity: 0.85;
+}
+
+.drift-ember {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #e8b53c;
+  box-shadow: 0 0 10px 2px rgba(232, 181, 60, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chase-track,
+  .drift-layer {
+    display: none;
+  }
+}
