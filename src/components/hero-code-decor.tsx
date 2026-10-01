@@ -107,35 +107,40 @@ type Spot = {
 };
 
 /*
- * Placed in the gutters either side of the 869px lockup. The whole layer is
- * gated at xl (1280px), the narrowest width where the gutter — (1280-869)/2,
- * about 205px — can hold a card without reaching the artwork.
+ * Placed in the gutters either side of the lockup. Positions are relative to
+ * a centred 1240px box rather than the viewport edges — anchored to the edges
+ * they drifted further from the artwork the wider the screen got, and on a
+ * 1280 screen they would have run into it. The box keeps a ~10px gap at
+ * every width.
+ *
+ * The layer is gated at xl (1280px), the narrowest width that fits a card
+ * beside the artwork at all.
  */
 const SPOTS: Spot[] = [
   {
     node: <TerminalCard />,
-    pos: { left: "1.5%", top: "20%", width: 170 },
+    pos: { left: 0, top: "20%", width: 170 },
     tilt: -4,
     duration: 11,
     delay: 0,
   },
   {
     node: <SnippetCard />,
-    pos: { right: "1.5%", top: "15%", width: 172 },
+    pos: { right: 0, top: "15%", width: 172 },
     tilt: 4,
     duration: 12,
     delay: -3,
   },
   {
     node: <CodeChip accent>vibe coding</CodeChip>,
-    pos: { left: "2%", top: "70%" },
+    pos: { left: 14, top: "70%" },
     tilt: 6,
     duration: 9,
     delay: -5,
   },
   {
     node: <CodeChip>git push origin main</CodeChip>,
-    pos: { right: "1.5%", top: "73%" },
+    pos: { right: 6, top: "73%" },
     tilt: -5,
     duration: 10,
     delay: -2,
@@ -148,6 +153,7 @@ export default function HeroCodeDecor() {
       aria-hidden
       className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden xl:block"
     >
+      <div className="relative mx-auto h-full w-full max-w-[1240px]">
       {SPOTS.map((s, i) => (
         <div
           key={i}
@@ -164,6 +170,7 @@ export default function HeroCodeDecor() {
           {s.node}
         </div>
       ))}
+      </div>
     </div>
   );
 }
