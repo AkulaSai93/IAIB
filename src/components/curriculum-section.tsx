@@ -1,15 +1,16 @@
 import StickerField from "@/components/code-sticker";
 import HypeSticker from "@/components/hype-sticker";
 import Reveal from "@/components/reveal";
-import MentorBrowser from "@/components/mentor-browser";
+import CurriculumIde from "@/components/curriculum-ide";
 
 export default function CurriculumSection() {
   return (
     <section
       id="curriculum"
-      className="relative overflow-hidden bg-canvas py-[60px] md:py-[80px]"
+      className="relative overflow-hidden bg-canvas pt-[48px] pb-[84px] md:pt-[80px] xl:pb-[80px]"
     >
       <StickerField
+        from="xl"
         stickers={[
           { text: "{ }", pos: { left: "4%", top: "26%" }, size: 34, rotate: 8, duration: 9 },
           { text: "def ai()", pos: { right: "3%", top: "64%" }, size: 26, rotate: -9, duration: 11, delay: -3 },
@@ -20,7 +21,7 @@ export default function CurriculumSection() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 overflow-hidden md:hidden"
+        className="pointer-events-none absolute inset-0 z-0 overflow-hidden xl:hidden"
       >
         <div
           className="float-soft absolute origin-center scale-[0.5]"
@@ -31,7 +32,7 @@ export default function CurriculumSection() {
       </div>
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden md:block"
+        className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden xl:block"
       >
         <div
           className="float-soft absolute"
@@ -42,7 +43,7 @@ export default function CurriculumSection() {
       </div>
       <div className="relative z-10 mx-auto flex max-w-[983px] flex-col items-center gap-8 px-5">
         <Reveal className="flex w-full max-w-[844px] flex-col gap-3 text-center">
-          <h2 className="font-ui text-[44px] font-bold tracking-[-1px] text-ink sm:text-[64px] lg:text-[80px] lg:tracking-[-2px]">
+          <h2 className="font-ui text-[34px] font-bold tracking-[-0.8px] text-ink sm:text-[64px] lg:text-[80px] lg:tracking-[-2px]">
             Explore the <span className="text-brand">Curriculum</span>
           </h2>
           <p className="font-display text-[18px] tracking-[-0.4px] text-ink sm:text-[24px]">
@@ -51,7 +52,7 @@ export default function CurriculumSection() {
         </Reveal>
 
         <Reveal delay={120} className="w-full">
-          <MentorBrowser idPrefix="curriculum" title="Curriculum" />
+          <CurriculumIde />
         </Reveal>
       </div>
     </section>

@@ -39,7 +39,7 @@ const STEPS: Step[] = [
   {
     label: "Step 04",
     title: "Grand Finale",
-    body: "36 hours, offline in Bengaluru. Build, pitch to VCs, and compete for the ₹25 lakh prize pool.",
+    body: "36 hours, offline in Bengaluru. Build, pitch to VCs, and compete for the ₹20 lakh prize pool.",
     bg: "#e2f8ef",
     art: 4,
   },
@@ -49,7 +49,7 @@ export default function HowItWorksSection() {
   return (
     <section
       id="how-it-works"
-      className="relative overflow-hidden bg-canvas pt-[60px] pb-[130px] md:pt-[80px] md:pb-[150px]"
+      className="relative overflow-hidden bg-canvas pt-[48px] pb-[120px] md:pt-[80px] md:pb-[150px]"
     >
       <StickerField
         stickers={[
@@ -86,7 +86,7 @@ export default function HowItWorksSection() {
       <div className="relative z-10 mx-auto flex max-w-[1512px] flex-col gap-[52px] px-5 lg:px-20">
         <div className="flex w-full flex-col items-start justify-between gap-8 md:flex-row md:items-center">
           <Reveal className="flex w-full max-w-[676px] flex-col gap-3">
-            <h2 className="font-ui text-[44px] font-bold tracking-[-1px] text-ink sm:text-[64px] lg:text-[80px] lg:tracking-[-2px]">
+            <h2 className="font-ui text-[34px] font-bold tracking-[-0.8px] text-ink sm:text-[64px] lg:text-[80px] lg:tracking-[-2px]">
               How does it <span className="text-brand">work?</span>
             </h2>
             <p className="font-display text-[18px] tracking-[-0.4px] text-ink sm:text-[24px]">

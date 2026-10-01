@@ -37,11 +37,11 @@ export type StickerSpec = {
 
 function Field({
   stickers,
-  scale,
+  scaleClass,
   className,
 }: {
   stickers: StickerSpec[];
-  scale: number;
+  scaleClass: string;
   className: string;
 }) {
   return (
@@ -52,11 +52,10 @@ function Field({
       {stickers.map((s, i) => (
         <div
           key={`${s.text}-${i}`}
-          className="float-soft absolute origin-center"
+          className={`float-soft absolute origin-center ${scaleClass}`}
           style={
             {
               ...s.pos,
-              scale: String(scale),
               "--tilt": "0deg",
               animationDuration: `${s.duration ?? 8}s`,
               animationDelay: `${s.delay ?? 0}s`,
@@ -79,18 +78,34 @@ function Field({
  * Narrow screens get their own placements: the content column runs almost
  * edge to edge there, so the only reliably empty space is the padding band
  * under a section rather than the side gutters desktop can use.
+ *
+ * `from` is where the gutter placements take over. Sections whose content
+ * column leaves gutters at tablet width keep the default "md"; the hero sets
+ * "xl", because its 869px lockup only clears the sides past 1280.
  */
 export default function StickerField({
   stickers,
   mobile,
+  from = "md",
 }: {
   stickers: StickerSpec[];
   mobile?: StickerSpec[];
+  from?: "md" | "xl";
 }) {
+  const compact =
+    from === "xl"
+      ? { hide: "xl:hidden", scale: "scale-[0.62] md:scale-[0.85]" }
+      : { hide: "md:hidden", scale: "scale-[0.62]" };
+  const gutter = from === "xl" ? "hidden xl:block" : "hidden md:block";
+
   return (
     <>
-      <Field stickers={mobile ?? stickers} scale={0.62} className="md:hidden" />
-      <Field stickers={stickers} scale={1} className="hidden md:block" />
+      <Field
+        stickers={mobile ?? stickers}
+        scaleClass={compact.scale}
+        className={compact.hide}
+      />
+      <Field stickers={stickers} scaleClass="" className={gutter} />
     </>
   );
 }

@@ -21,6 +21,11 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  /* clears the sticky header when jumping to an anchor */
+  scroll-padding-top: 96px;
+}
+
 body {
   background: var(--color-canvas);
   color: var(--color-ink);
@@ -493,5 +498,184 @@ svg .mascot-half-b[transform] {
   .chase-track,
   .drift-layer {
     display: none;
+  }
+}
+
+/*
+ * Hero terminal: the command types itself in with steps(), holds, then
+ * resets. `--ch` is the finished width in characters, set at the callsite.
+ */
+@keyframes type-cmd {
+  0% {
+    width: 0;
+  }
+  32% {
+    width: var(--ch);
+  }
+  90% {
+    width: var(--ch);
+  }
+  100% {
+    width: 0;
+  }
+}
+
+.type-cmd {
+  display: inline-block;
+  width: var(--ch);
+  animation: type-cmd 7s steps(17) infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.caret-blink {
+  animation: caret-blink 1.05s steps(1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .type-cmd,
+  .caret-blink {
+    animation: none;
+  }
+}
+
+/*
+ * Registration success: the tick draws itself, a ring counts down, then the
+ * panel flips to the member card on its own. The flip is two halves — the
+ * confirmation swings away, the card swings in — rather than a double-sided
+ * 3D card, so the two faces don't have to be the same height.
+ */
+@keyframes pop-in {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.pop-in {
+  animation: pop-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+
+@keyframes tick-draw {
+  from {
+    stroke-dashoffset: var(--len);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.tick-draw {
+  stroke-dasharray: var(--len);
+  animation: tick-draw 0.4s 0.3s ease-out both;
+}
+
+/* Sweeps the ring away over the countdown, so the wait is visible. */
+@keyframes ring-sweep {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: var(--circ);
+  }
+}
+
+.ring-sweep {
+  stroke-dasharray: var(--circ);
+  animation: ring-sweep var(--dur, 5s) linear both;
+}
+
+@keyframes flip-out {
+  from {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: rotateY(-90deg);
+    opacity: 0;
+  }
+}
+
+.flip-out {
+  animation: flip-out 0.3s ease-in both;
+}
+
+@keyframes flip-in {
+  from {
+    transform: rotateY(90deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+.flip-in {
+  animation: flip-in 0.44s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pop-in,
+  .tick-draw,
+  .ring-sweep,
+  .flip-out,
+  .flip-in {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+}
+
+/* Horizontal strips that scroll on small screens: the track is noise. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+ * Marquee strip: two identical copies sit side by side, so sliding the
+ * track exactly -50% lands the second copy where the first began and the
+ * loop is seamless.
+ */
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee {
+  animation: marquee-x var(--speed, 34s) linear infinite;
+  will-change: transform;
+}
+
+.marquee:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    animation: none;
   }
 }

@@ -10,14 +10,15 @@ import {
   useState,
 } from "react";
 
-import MemberCard from "@/components/member-card";
+import RegistrationSuccess from "@/components/registration-success";
+import SchoolForm from "@/components/school-form";
 import { loadStudent, saveStudent } from "@/lib/student-store";
 
 /* ------------------------------------------------------------------ *
  * Steps
  * ------------------------------------------------------------------ */
 
-type Path = "individual" | "school";
+export type Path = "individual" | "school";
 
 type Step =
   | {
@@ -29,6 +30,8 @@ type Step =
       validate: (v: string) => string | null;
     }
   | { id: string; kind: "choice"; question: string; hint?: string; options: string[] }
+  | { id: "pincode"; kind: "pincode"; question: string; hint?: string; placeholder: string }
+  | { id: "school"; kind: "school"; question: string; hint?: string; placeholder: string }
   | { id: "otp"; kind: "otp"; question: string; hint?: string };
 
 const required = (label: string) => (v: string) =>
@@ -54,23 +57,15 @@ const INDIVIDUAL: Step[] = [
   {
     id: "name",
     kind: "text",
-    question: "First up — what's your name?",
-    placeholder: "Your full name",
+    question: "What's your name?",
+    placeholder: "As you'd like it to appear on your certificate",
     validate: required("your name"),
-  },
-  {
-    id: "email",
-    kind: "email",
-    question: "Where can we reach you?",
-    hint: "We'll send your confirmation here.",
-    placeholder: "you@school.edu",
-    validate: isEmail,
   },
   {
     id: "phone",
     kind: "tel",
-    question: "And your mobile number?",
-    hint: "Used only for updates about the buildathon.",
+    question: "And your WhatsApp number?",
+    hint: "We'll send important updates and information to this number.",
     placeholder: "98765 43210",
     validate: isPhone,
   },
@@ -82,18 +77,17 @@ const INDIVIDUAL: Step[] = [
     options: ["Class 9", "Class 10", "Class 11", "Class 12"],
   },
   {
-    id: "school",
-    kind: "text",
-    question: "Which school do you go to?",
-    placeholder: "School name",
-    validate: required("your school"),
+    id: "pincode",
+    kind: "pincode",
+    question: "Where is your school located?",
+    hint: "Enter your school's PIN code so we can find your school and location.",
+    placeholder: "Enter pincode",
   },
   {
-    id: "city",
-    kind: "text",
-    question: "And which city?",
-    placeholder: "City",
-    validate: required("your city"),
+    id: "school",
+    kind: "school",
+    question: "What's your school name?",
+    placeholder: "Start typing to find your school\u2026",
   },
 ];
 
@@ -174,18 +168,31 @@ async function submitRegistration(path: Path, answers: Record<string, string>) {
  * Context
  * ------------------------------------------------------------------ */
 
-const RegisterCtx = createContext<{ open: () => void }>({ open: () => {} });
+/* Figma uses an underlined field rather than a boxed one. */
+const UNDERLINE =
+  "w-full border-0 border-b-2 border-solid border-brand bg-transparent px-0 pb-2.5 font-display text-[18px] text-ink outline-none placeholder:text-ink/35 focus:border-ink";
+
+const RegisterCtx = createContext<{ open: (path?: Path) => void }>({
+  open: () => {},
+});
 export const useRegister = () => useContext(RegisterCtx);
 
 export function RegisterProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setOpen] = useState(false);
-  const open = useCallback(() => setOpen(true), []);
+  // which set of questions the modal starts on; the bottom link still switches
+  const [startPath, setStartPath] = useState<Path>("individual");
+  const open = useCallback((path: Path = "individual") => {
+    setStartPath(path);
+    setOpen(true);
+  }, []);
   const value = useMemo(() => ({ open }), [open]);
 
   return (
     <RegisterCtx.Provider value={value}>
       {children}
-      {isOpen && <RegisterModal onClose={() => setOpen(false)} />}
+      {isOpen && (
+        <RegisterModal startPath={startPath} onClose={() => setOpen(false)} />
+      )}
     </RegisterCtx.Provider>
   );
 }
@@ -194,8 +201,14 @@ export function RegisterProvider({ children }: { children: React.ReactNode }) {
  * Modal
  * ------------------------------------------------------------------ */
 
-function RegisterModal({ onClose }: { onClose: () => void }) {
-  const [path, setPath] = useState<Path>("individual");
+function RegisterModal({
+  startPath,
+  onClose,
+}: {
+  startPath: Path;
+  onClose: () => void;
+}) {
+  const [path, setPath] = useState<Path>(startPath);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [value, setValue] = useState("");
@@ -203,11 +216,17 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [schoolDone, setSchoolDone] = useState(false);
+  // resolved from the PIN code, shown read-only and carried into the payload
+  const [loc, setLoc] = useState<{ city: string; state: string; pin: string } | null>(null);
+  const [locBusy, setLocBusy] = useState(false);
+  const [hits, setHits] = useState<{ id: string; name: string; address: string }[]>([]);
 
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const isSchool = path === "school";
   const steps = path === "individual" ? INDIVIDUAL : SCHOOL;
   const step = steps[index];
   const total = steps.length;
@@ -245,6 +264,54 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
   const answersRef = useRef(answers);
   answersRef.current = answers;
 
+  /* PIN resolves to city + state, same endpoint the school form uses. */
+  useEffect(() => {
+    if (step?.kind !== "pincode") return;
+    const digits = value.replace(/\D/g, "");
+    if (digits.length !== 6) {
+      setLoc(null);
+      return;
+    }
+    let cancelled = false;
+    setLocBusy(true);
+    fetch(`/api/pincode?pin=${digits}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        if (d.ok) {
+          setLoc({ city: d.city, state: d.state, pin: d.pin });
+          setError(null);
+        } else {
+          setLoc(null);
+          setError(d.error ?? "We couldn't find that PIN code.");
+        }
+      })
+      .catch(() => !cancelled && setError("Couldn't look that up. Try again."))
+      .finally(() => !cancelled && setLocBusy(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [value, step]);
+
+  /* School type-ahead, scoped to the resolved PIN. */
+  useEffect(() => {
+    if (step?.kind !== "school" || !loc || value.trim().length < 2) {
+      setHits([]);
+      return;
+    }
+    let cancelled = false;
+    const t = setTimeout(() => {
+      fetch(`/api/schools?pin=${loc.pin}&q=${encodeURIComponent(value.trim())}`)
+        .then((r) => r.json())
+        .then((d) => !cancelled && setHits(d.results ?? []))
+        .catch(() => !cancelled && setHits([]));
+    }, 280);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [value, loc, step]);
+
   const switchPath = (p: Path) => {
     setPath(p);
     setIndex(0);
@@ -263,7 +330,7 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
       phone: all.phone ?? "",
       grade: all.grade ?? "",
       school: all.school ?? "",
-      city: all.city ?? "",
+      city: loc?.city ?? all.city ?? "",
     });
     setBusy(false);
     setDone(true);
@@ -299,7 +366,20 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
       return advance(code);
     }
 
-    if (step.kind === "choice") return;
+    if (step.kind === "choice") {
+      if (!value) return setError("Pick one to continue.");
+      return advance(value);
+    }
+
+    if (step.kind === "pincode") {
+      if (!loc) return setError("Enter a valid 6-digit PIN code.");
+      return advance(loc.pin);
+    }
+
+    if (step.kind === "school") {
+      if (value.trim().length < 2) return setError("Please enter your school's name.");
+      return advance(value.trim());
+    }
 
     const problem = step.validate(value);
     if (problem) return setError(problem);
@@ -328,17 +408,6 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
     otpRefs.current[Math.min(i + digits.length, 5)]?.focus();
   };
 
-  // Once the number is verified we have what we need; the profile
-  // questions that follow are optional.
-  const otpIndex = steps.findIndex((x) => x.kind === "otp");
-  const canSkip = otpIndex >= 0 && index > otpIndex;
-
-  const onSkip = async () => {
-    if (busy) return;
-    setError(null);
-    await advance("");
-  };
-
   const progress = ((done ? total : index) / total) * 100;
 
   return (
@@ -353,20 +422,26 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-label="Register for IAIB"
-        className="relative flex max-h-[92vh] w-full max-w-[600px] flex-col overflow-hidden rounded-t-[20px] border-black bg-white sm:rounded-[20px]"
+        className={`relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-[20px] border-black bg-white sm:rounded-[20px] ${isSchool ? "max-w-[640px]" : "max-w-[600px]"}`}
         style={{ borderStyle: "solid", borderWidth: "2px 6px 6px 2px" }}
       >
         {/* progress */}
         <div className="h-1.5 w-full bg-black/10">
           <div
             className="h-full bg-brand transition-[width] duration-500 ease-out"
-            style={{ width: `${progress}%` }}
+            style={{ width: isSchool ? "100%" : `${progress}%` }}
           />
         </div>
 
         <div className="flex items-center justify-between px-6 pt-4">
           <p className="font-display text-[13px] text-ink/50">
-            {done ? "All done" : `Question ${index + 1} of ${total}`}
+            {isSchool
+              ? schoolDone
+                ? "All done"
+                : "School registration"
+              : done
+                ? "All done"
+                : `Question ${index + 1} of ${total}`}
           </p>
           <button
             type="button"
@@ -386,25 +461,32 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 pt-4 pb-7 sm:px-9 sm:pb-9">
+          {/* ---- schools get the whole form on one page ---- */}
+          {isSchool && (
+            <SchoolForm onClose={onClose} onRegistered={() => setSchoolDone(true)} />
+          )}
+
           {/* ---- done ---- */}
-          {done && (
+          {!isSchool && done && (
             <div key="done" className="step-in">
-              <MemberCard name={answers.name ?? "Builder"} onClose={onClose} />
+              <RegistrationSuccess
+                name={answers.name ?? "Builder"}
+                email={answers.email}
+                onClose={onClose}
+              />
             </div>
           )}
 
           {/* ---- questions ---- */}
-          {!done && step && (
+          {!isSchool && !done && step && (
             <div key={`${path}-${index}`} className="step-in flex flex-col gap-5 py-2">
               <div>
                 <h3 className="font-ui text-[26px] leading-[1.15] font-bold tracking-[-0.8px] text-ink sm:text-[32px]">
                   {step.question}
                 </h3>
-                {(step.hint || canSkip) && (
+                {step.hint && (
                   <p className="mt-2 font-display text-[15px] text-ink/60">
                     {step.hint}
-                    {step.hint && canSkip ? " " : ""}
-                    {canSkip && <span className="text-ink/45">Optional.</span>}
                   </p>
                 )}
               </div>
@@ -415,8 +497,16 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
                     <button
                       key={opt}
                       type="button"
-                      onClick={() => advance(opt)}
-                      className="rounded-[10px] border-2 border-black/15 px-4 py-4 text-left font-display text-[17px] font-medium text-ink transition-colors hover:border-black hover:bg-black/[0.03]"
+                      aria-pressed={value === opt}
+                      onClick={() => {
+                        setValue(opt);
+                        setError(null);
+                      }}
+                      className={`rounded-[8px] border border-solid px-4 py-3.5 text-left font-display text-[16px] transition-colors ${
+                        value === opt
+                          ? "border-black bg-brand/[0.06] text-ink"
+                          : "border-black/15 bg-white text-ink hover:border-black hover:bg-black/[0.03]"
+                      }`}
                     >
                       {opt}
                     </button>
@@ -441,17 +531,128 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
                           otpRefs.current[i - 1]?.focus();
                         if (e.key === "Enter") void onNext();
                       }}
-                      className="h-14 w-full rounded-[10px] border-2 border-black/15 text-center font-ui text-[22px] font-bold text-ink outline-none focus:border-black"
+                      className="size-12 rounded-[8px] border border-solid border-black/20 text-center font-ui text-[20px] font-bold text-ink outline-none focus:border-2 focus:border-black sm:size-[52px]"
                     />
                   ))}
+                </div>
+              ) : step.kind === "pincode" ? (
+                <div className="flex flex-col gap-5">
+                  <input
+                    ref={inputRef}
+                    value={value}
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder={step.placeholder}
+                    onChange={(e) => {
+                      setValue(e.target.value.replace(/\D/g, "").slice(0, 6));
+                      setError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void onNext();
+                    }}
+                    className={UNDERLINE}
+                  />
+                  {/* filled in from the PIN code, so not editable */}
+                  <div className="grid grid-cols-2 gap-5">
+                    <input
+                      readOnly
+                      aria-label="City"
+                      value={loc?.city ?? ""}
+                      placeholder={locBusy ? "\u2026" : "-- -- --"}
+                      className={`${UNDERLINE} cursor-default`}
+                    />
+                    <input
+                      readOnly
+                      aria-label="State"
+                      value={loc?.state ?? ""}
+                      placeholder={locBusy ? "\u2026" : "-- -- --"}
+                      className={`${UNDERLINE} cursor-default`}
+                    />
+                  </div>
+                </div>
+              ) : step.kind === "school" ? (
+                <div className="relative flex flex-col gap-4">
+                  {loc && (
+                    <div className="flex flex-wrap gap-2">
+                      {[loc.pin, loc.city, loc.state].map((chip) => (
+                        <span
+                          key={chip}
+                          className="rounded-[4px] bg-brand px-2.5 py-1 font-display text-[14px] text-white"
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <input
+                    ref={inputRef}
+                    value={value}
+                    placeholder={step.placeholder}
+                    autoComplete="off"
+                    onChange={(e) => {
+                      setValue(e.target.value);
+                      setError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void onNext();
+                    }}
+                    className={UNDERLINE}
+                  />
+                  {hits.length > 0 && (
+                    <ul className="absolute top-full right-0 left-0 z-10 max-h-[200px] overflow-y-auto rounded-[8px] border border-solid border-black/15 bg-white py-1 shadow-lg">
+                      {hits.map((h) => (
+                        <li key={h.id}>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setValue(h.name);
+                              setHits([]);
+                            }}
+                            className="flex w-full flex-col items-start px-3 py-2 text-left transition-colors hover:bg-black/[0.04]"
+                          >
+                            <span className="font-display text-[15px] text-ink">{h.name}</span>
+                            {h.address && (
+                              <span className="font-display text-[12px] text-ink/50">
+                                {h.address}
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : step.kind === "tel" ? (
+                <div className="flex items-center gap-2.5 border-b-2 border-solid border-brand pb-2.5 focus-within:border-ink">
+                  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden className="shrink-0">
+                    <circle cx="12" cy="12" r="12" fill="#25D366" />
+                    <path
+                      fill="#fff"
+                      d="M12 5.6a6.3 6.3 0 0 0-5.4 9.5L5.7 18.4l3.4-.9A6.3 6.3 0 1 0 12 5.6Zm3.2 8.9c-.13.38-.76.75-1.07.76-.31.06-.63.07-1-.06-.25-.07-.57-.18-.95-.37-1.64-.7-2.7-2.4-2.78-2.52-.08-.12-.66-.88-.66-1.64s.4-1.14.55-1.3c.13-.15.3-.19.4-.19h.3c.1 0 .24 0 .37.3l.5 1.2c.07.13.07.25 0 .32l-.2.3-.19.2c-.6.07-.13.17 0 .32.13.18.44.69.88 1.12.56.5 1.06.69 1.2.76.13.06.24.06.32-.07l.44-.5c.12-.13.2-.1.32-.06l1.13.56c.13.06.25.12.25.19.06.13.06.37 0 .62Z"
+                    />
+                  </svg>
+                  <input
+                    ref={inputRef}
+                    type="tel"
+                    inputMode="numeric"
+                    value={value}
+                    placeholder={step.placeholder}
+                    onChange={(e) => {
+                      setValue(e.target.value);
+                      setError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void onNext();
+                    }}
+                    className="w-full border-0 bg-transparent p-0 font-display text-[18px] text-ink outline-none placeholder:text-ink/35"
+                  />
                 </div>
               ) : (
                 <input
                   ref={inputRef}
                   type={step.kind === "number" ? "number" : step.kind}
-                  inputMode={
-                    step.kind === "tel" || step.kind === "number" ? "numeric" : undefined
-                  }
+                  inputMode={step.kind === "number" ? "numeric" : undefined}
                   value={value}
                   placeholder={step.placeholder}
                   onChange={(e) => {
@@ -461,7 +662,7 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") void onNext();
                   }}
-                  className="w-full border-b-2 border-black/20 bg-transparent pb-3 font-display text-[22px] text-ink outline-none placeholder:text-ink/25 focus:border-brand sm:text-[26px]"
+                  className={UNDERLINE}
                 />
               )}
 
@@ -481,43 +682,29 @@ function RegisterModal({ onClose }: { onClose: () => void }) {
                     Back
                   </button>
                 )}
-                {step.kind !== "choice" && (
-                  <button
-                    type="button"
-                    onClick={() => void onNext()}
-                    disabled={busy}
-                    className="rounded-[8px] bg-brand px-7 py-3 font-ui text-[16px] text-white transition-colors hover:bg-black disabled:opacity-60"
-                  >
-                    {busy
-                      ? "Just a sec…"
-                      : index + 1 === total
-                        ? "Finish"
-                        : step.kind === "otp"
-                          ? "Verify"
-                          : "Next"}
-                  </button>
-                )}
-                {canSkip && (
-                  <button
-                    type="button"
-                    onClick={() => void onSkip()}
-                    disabled={busy}
-                    className="rounded-[8px] px-4 py-2.5 font-display text-[15px] text-ink/55 underline underline-offset-2 transition-colors hover:text-ink disabled:opacity-60"
-                  >
-                    {index + 1 === total ? "Skip & finish" : "Skip"}
-                  </button>
-                )}
-                {step.kind !== "choice" && !canSkip && (
-                  <span className="hidden font-display text-[13px] text-ink/40 sm:inline">
-                    or press Enter
-                  </span>
-                )}
+                <button
+                  type="button"
+                  onClick={() => void onNext()}
+                  disabled={busy}
+                  className="rounded-[6px] bg-brand px-7 py-2.5 font-ui text-[16px] text-white transition-colors hover:bg-black disabled:opacity-60"
+                >
+                  {busy ? "Just a sec…" : step.kind === "otp" ? "Verify" : "Next"}
+                </button>
               </div>
+
+              {/* Figma 258:20693 — consent sits under the OTP step */}
+              {step.kind === "otp" && (
+                <p className="font-display text-[12px] leading-[18px] text-ink/55">
+                  By verifying your number, you agree to receive{" "}
+                  <span className="text-brand">marketing and promotional messages</span>{" "}
+                  from us on WhatsApp.
+                </p>
+              )}
             </div>
           )}
         </div>
 
-        {!done && (
+        {!schoolDone && (isSchool || !done) && (
           <div className="border-t border-black/10 px-6 py-4 sm:px-9">
             {path === "individual" ? (
               <p className="font-display text-[14px] text-ink/60">

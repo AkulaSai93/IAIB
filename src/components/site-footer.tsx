@@ -1,79 +1,80 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import DotWave from "@/components/dot-wave";
-import Reveal from "@/components/reveal";
-import brandLogo from "../../public/images/logo-upgrad-iaib.png";
+import blocks from "../../public/images/footer/buildathon-blocks.png";
 
-const VIDEO_SRC =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_215831_c6a8989c-d716-4d8d-8745-e972a2eec711.mp4";
-
-/**
- * Closing footer: the hand plate full-bleed, a dot-wave overlay, and the
- * wordmark sitting on a white fade-up at the bottom.
+/*
+ * Figma 258:19832 — yellow panel, wordmark and socials on the left, the
+ * isometric BUILDATHON blocks on the right.
+ *
+ * TODO: the four social links point nowhere yet; swap in the real handles.
  */
+const SOCIALS = [
+  { label: "LinkedIn", icon: "/images/footer/social-1.svg", href: "#" },
+  { label: "Facebook", icon: "/images/footer/social-2.svg", href: "#" },
+  { label: "Instagram", icon: "/images/footer/social-3.svg", href: "#" },
+  { label: "YouTube", icon: "/images/footer/social-4.svg", href: "#" },
+];
+
 export default function SiteFooter() {
   return (
-    <footer
-      id="footer"
-      className="relative flex min-h-screen w-full flex-col justify-end overflow-hidden bg-white"
-    >
-      {/* plate */}
-      <div className="pointer-events-none absolute inset-0 z-0">
-        {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-        <video
-          className="h-full w-full object-cover"
-          src={VIDEO_SRC}
-          poster="/images/footer-bg.png"
-          autoPlay
-          muted
-          playsInline
-          loop
-          aria-hidden
-        />
-      </div>
-
-      {/* interactive dot field, reacting to the pointer */}
-      <DotWave className="pointer-events-none absolute inset-0 z-10 h-full w-full" />
-
+    <footer className="mt-auto bg-canvas px-5 pb-6 lg:px-0 lg:pb-0">
       <div
-        className="relative z-30 flex w-full flex-col gap-8 px-5 pt-[120px] pb-8 md:flex-row md:items-end md:justify-between md:px-[60px] md:pt-[173.8px] md:pb-12"
-        style={{
-          background:
-            "linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 100%)",
-        }}
+        className="relative overflow-hidden border-black bg-[#ffdc69]"
+        style={{ borderStyle: "solid", borderWidth: "3px 12px 12px 3px" }}
       >
-        <Reveal className="flex flex-col items-start gap-4">
-          <Image
-            src={brandLogo}
-            alt="upGrad School of Technology x IAIB"
-            width={334}
-            height={63}
-            className="h-[38px] w-auto object-contain md:h-[54px]"
-          />
-          <p className="font-display text-[clamp(1.9rem,6.6vw,83.16px)] leading-[1] font-light tracking-[-0.03em] whitespace-nowrap text-black">
-            IGNITE <span className="text-brand">AI</span> BUILDATHON
-          </p>
-        </Reveal>
+        <div className="relative z-10 flex flex-col gap-10 px-7 py-10 sm:px-12 lg:px-[77px] lg:py-[77px]">
+          <div className="flex flex-col gap-7 lg:max-w-[522px] lg:gap-10">
+            <p className="font-ui text-[40px] leading-[1.06] font-bold text-[#111] sm:text-[58px] lg:text-[76px]">
+              IGNITE AI BUILDATHON
+            </p>
 
-        <Reveal
-          delay={120}
-          className="flex items-center justify-start gap-3 md:justify-end"
-        >
-          <Link
-            href="#privacy"
-            className="font-display text-[13px] whitespace-nowrap text-[#202020] hover:underline"
-          >
-            Privacy Policy
-          </Link>
-          <span aria-hidden className="h-[18px] w-px bg-[#202020]/40" />
-          <Link
-            href="#terms"
-            className="font-display text-[13px] whitespace-nowrap text-[#202020] hover:underline"
-          >
-            Terms &amp; Conditions
-          </Link>
-        </Reveal>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+              <p className="font-display text-[16px] font-medium text-[#111] sm:text-[18px]">
+                Follow us on
+              </p>
+              <ul className="flex items-center gap-3">
+                {SOCIALS.map((s) => (
+                  <li key={s.label}>
+                    <a
+                      href={s.href}
+                      aria-label={s.label}
+                      className="grid size-10 place-items-center bg-[#111] transition-colors hover:bg-brand"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={s.icon} alt="" width={20} height={20} aria-hidden />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* the blocks sit alongside on desktop, under the wordmark on mobile */}
+          <Image
+            src={blocks}
+            alt=""
+            aria-hidden
+            sizes="(max-width: 1023px) 92vw, 634px"
+            className="h-auto w-full max-w-[520px] self-center lg:absolute lg:top-[125px] lg:left-[753px] lg:w-[634px] lg:max-w-none lg:self-auto"
+          />
+
+          <div className="flex items-center gap-4 lg:mt-[106px]">
+            <Link
+              href="#"
+              className="font-display text-[15px] font-medium text-[#111] underline-offset-2 hover:underline sm:text-[18px]"
+            >
+              Privacy Policy
+            </Link>
+            <span aria-hidden className="h-[23px] w-px bg-black/35" />
+            <Link
+              href="#"
+              className="font-display text-[15px] font-medium text-[#111] underline-offset-2 hover:underline sm:text-[18px]"
+            >
+              Terms &amp; Conditions
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

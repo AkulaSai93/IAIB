@@ -1,13 +1,18 @@
 "use client";
 
-import { useRegister } from "@/components/register-flow";
+import { useRegister, type Path } from "@/components/register-flow";
 
 type Props = {
   children: React.ReactNode;
-  /** `sm` is the header pill; `lg` is the page-level call to action. */
+  /**
+   * Every call to action on the page is the same size — `sm`. `lg` is kept
+   * for anywhere that needs the oversized treatment.
+   */
   variant?: "sm" | "lg";
   id?: string;
   className?: string;
+  /** Which set of registration questions the modal opens on. */
+  registerAs?: Path;
 };
 
 const BASE =
@@ -20,9 +25,10 @@ const SIZES = {
 
 export default function CtaButton({
   children,
-  variant = "lg",
+  variant = "sm",
   id,
   className = "",
+  registerAs = "individual",
 }: Props) {
   const { open } = useRegister();
 
@@ -30,7 +36,7 @@ export default function CtaButton({
     <button
       type="button"
       id={id}
-      onClick={open}
+      onClick={() => open(registerAs)}
       className={`${BASE} ${SIZES[variant]} ${className}`}
     >
       {/*

@@ -7,9 +7,10 @@ export default function MentorsSection() {
   return (
     <section
       id="mentor"
-      className="relative overflow-hidden bg-canvas py-[60px] md:py-[80px]"
+      className="relative overflow-hidden bg-canvas pt-[48px] pb-[84px] md:pt-[80px] xl:pb-[80px]"
     >
       <StickerField
+        from="xl"
         stickers={[
           { text: "</>", pos: { left: "4%", top: "22%" }, size: 32, rotate: -8, duration: 10 },
           { text: "ai()", pos: { right: "4%", top: "68%" }, size: 30, rotate: 9, duration: 8, delay: -2 },
@@ -20,7 +21,7 @@ export default function MentorsSection() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 overflow-hidden md:hidden"
+        className="pointer-events-none absolute inset-0 z-0 overflow-hidden xl:hidden"
       >
         <div
           className="float-soft absolute origin-center scale-[0.5]"
@@ -31,7 +32,7 @@ export default function MentorsSection() {
       </div>
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden md:block"
+        className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden xl:block"
       >
         <div
           className="float-soft absolute"
@@ -42,8 +43,8 @@ export default function MentorsSection() {
       </div>
       <div className="relative z-10 mx-auto flex max-w-[983px] flex-col items-center gap-8 px-5">
         <Reveal className="flex w-full max-w-[844px] flex-col gap-3 text-center">
-          <h2 className="font-ui text-[44px] font-bold tracking-[-1px] text-ink sm:text-[64px] lg:text-[80px] lg:tracking-[-2px]">
-            Meet Our <span className="text-brand">Mentors</span>
+          <h2 className="font-ui text-[34px] font-bold tracking-[-0.8px] text-ink sm:text-[64px] lg:text-[80px] lg:tracking-[-2px]">
+            Meet Your <span className="text-brand">Mentors</span>
           </h2>
           <p className="font-display text-[18px] tracking-[-0.4px] text-ink sm:text-[24px]">
             Learn from industry experts, creators, and innovators who bring

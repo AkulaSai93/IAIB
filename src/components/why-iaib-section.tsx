@@ -52,7 +52,7 @@ type CardDef = {
 const CARDS: CardDef[] = [
   {
     id: "scholarship",
-    label: "Scholarship worth 2 crore",
+    label: "Scholarship worth 2 crore*",
     bg: "#e7f5fe",
     pieces: [
       { text: "Scholarship", left: 59.4, top: 19.8, width: 257.4 },
@@ -87,7 +87,7 @@ const CARDS: CardDef[] = [
   },
   {
     id: "prizes",
-    label: "Prizes worth 25 lakhs",
+    label: "Prizes worth 20 lakhs",
     bg: "#fde7a7",
     pieces: [
       { text: "Prizes", left: 101.2, top: 18.7 },
@@ -147,7 +147,7 @@ const CARDS: CardDef[] = [
   },
 ];
 
-function CardFace({ card }: { card: CardDef }) {
+function CardFace({ card, eager }: { card: CardDef; eager?: boolean }) {
   return (
     <div
       className="relative overflow-hidden rounded-[22px] border-black"
@@ -179,17 +179,21 @@ function CardFace({ card }: { card: CardDef }) {
             }}
           >
             {/*
-              Queued cards sit translated off-screen, so lazy loading would
-              only start when one slides in — leaving a blank card mid-
-              animation. Five small illustrations: load them up front.
+              Only the front card is fetched up front — the other four are
+              ~500kB between them and sit a full viewport below the fold,
+              where they were crowding out the hero artwork. The queued
+              cards load lazily; their layout box is inside the pinned
+              container, so the browser starts them well before they slide
+              in and no card animates in blank.
             */}
             <Image
               src={card.image.src}
               alt=""
               aria-hidden
               fill
-              loading="eager"
-              sizes="424px"
+              loading={eager ? "eager" : "lazy"}
+              fetchPriority={eager ? "auto" : "low"}
+              sizes="(max-width: 640px) 90vw, 424px"
               className="object-cover"
             />
           </div>
@@ -308,7 +312,7 @@ export default function WhyIaibSection() {
 
   const heading = (
     <div className="flex w-full max-w-[594px] flex-col gap-6">
-      <h2 className="font-ui text-[44px] font-bold tracking-[-1px] text-ink sm:text-[64px] lg:text-[80px] lg:tracking-[-2px]">
+      <h2 className="font-ui text-[34px] font-bold tracking-[-0.8px] text-ink sm:text-[64px] lg:text-[80px] lg:tracking-[-2px]">
         Why <span className="text-brand">IAIB?</span>
       </h2>
       <p className="font-display text-[18px] leading-[26px] tracking-[-0.4px] text-ink sm:text-[22px] sm:leading-[28px]">
@@ -353,6 +357,7 @@ export default function WhyIaibSection() {
     >
       <div className="sticky top-0 flex h-screen items-center overflow-hidden">
         <StickerField
+          from="xl"
           stickers={[
             { text: "const", pos: { left: "4%", top: "16%" }, size: 30, rotate: -7, duration: 9 },
             { text: "=>", pos: { left: "27%", top: "80%" }, size: 34, rotate: 10, duration: 7, delay: -2 },
@@ -364,7 +369,7 @@ export default function WhyIaibSection() {
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 overflow-hidden md:hidden"
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden xl:hidden"
         >
           <div
             className="float-soft absolute origin-center scale-[0.5]"
@@ -382,7 +387,7 @@ export default function WhyIaibSection() {
         </div>
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden md:block"
+        className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden xl:block"
       >
         <div
             className="float-soft absolute"
@@ -429,7 +434,7 @@ export default function WhyIaibSection() {
                   className="absolute inset-0 will-change-transform"
                   style={{ zIndex: i, transformOrigin: "50% 100%" }}
                 >
-                  <CardFace card={card} />
+                  <CardFace card={card} eager={i === 0} />
                 </div>
               ))}
             </div>

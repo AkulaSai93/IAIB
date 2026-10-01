@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+
+import CtaButton from "@/components/cta-button";
 import { useState } from "react";
 
 import logoBarclays from "../../public/images/curriculum/logo-barclays.png";
@@ -85,12 +87,15 @@ export default function MentorBrowser({
         </p>
       </div>
 
-      {/* body */}
-      <div className="relative flex flex-col items-center px-5 pt-6 pb-10 lg:pt-7 lg:pb-12">
+      {/*
+        Figma 258:19671 — photo is a 331px square on the left, details 72px
+        to its right, Register Now pinned bottom-right.
+      */}
+      <div className="relative px-5 pt-5 pb-9 lg:px-12 lg:pb-10">
         {/* avatar switcher */}
         <nav
           aria-label={title}
-          className="flex max-w-full items-center gap-1 overflow-x-auto rounded-full bg-[#111111] p-1.5"
+          className="no-scrollbar mx-auto flex w-fit max-w-full items-center gap-1 overflow-x-auto rounded-full bg-[#111111] p-1.5"
         >
           {mentors.map((m, i) => (
             <button
@@ -99,7 +104,7 @@ export default function MentorBrowser({
               onClick={() => setActive(i)}
               aria-current={i === active}
               aria-label={m.name}
-              className={`grid size-9 shrink-0 place-items-center rounded-full text-white transition-colors ${
+              className={`grid size-[27px] shrink-0 place-items-center rounded-full text-white transition-colors ${
                 i === active ? "bg-brand" : "hover:bg-white/15"
               }`}
             >
@@ -108,77 +113,88 @@ export default function MentorBrowser({
           ))}
         </nav>
 
-        <div className="relative mt-8 aspect-square w-[238px] max-w-full lg:mt-10">
-          <Image
-            src={mentor.photo}
-            alt={mentor.name}
-            fill
-            sizes="238px"
-            className="object-cover"
-          />
-        </div>
-
-        <div className="mt-7 flex w-[280px] max-w-full flex-col items-center gap-4">
-          <div className="flex w-full flex-col items-center gap-1.5 text-center">
-            <p className="font-ui text-[28px] leading-[normal] font-bold text-[#272727] lg:text-[35px]">
-              {mentor.name}
-            </p>
-            <p className="font-display text-[14px] leading-[normal] text-brand lg:text-[15px]">
-              {mentor.role}
-            </p>
+        <div className="mt-8 flex flex-col items-center gap-8 lg:mt-10 lg:flex-row lg:items-center lg:gap-[72px] lg:pl-[72px]">
+          <div className="relative aspect-square w-[238px] max-w-full shrink-0 lg:w-[331px]">
+            <Image
+              src={mentor.photo}
+              alt={mentor.name}
+              fill
+              sizes="(max-width: 1023px) 238px, 331px"
+              className="object-cover"
+            />
           </div>
 
-          <div className="flex items-center gap-3">
-            <Image
-              src={logoUpgradMark}
-              alt="upGrad School of Technology"
-              width={78}
-              height={25}
-              className="h-[25px] w-[78.049px] object-contain"
-            />
-            {/* Figma crops the Barclays artwork out of a larger canvas. */}
-            <div className="relative h-[25px] w-[128.026px] overflow-hidden">
+          <div className="flex w-full max-w-[284px] flex-col items-center gap-5 lg:items-start">
+            <div className="flex w-full flex-col items-center gap-1.5 text-center lg:items-start lg:text-left">
+              <p className="font-ui text-[28px] leading-[normal] font-bold text-[#272727] lg:text-[35px]">
+                {mentor.name}
+              </p>
+              <p className="font-display text-[14px] leading-[normal] text-brand lg:text-[15px]">
+                {mentor.role}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3.5">
               <Image
-                src={logoBarclays}
-                alt="Barclays"
-                width={158}
-                height={105}
-                className="absolute max-w-none"
-                style={{ width: 157.9, height: 105.3, left: -15, top: -39.9 }}
+                src={logoUpgradMark}
+                alt="upGrad School of Technology"
+                width={85}
+                height={27}
+                className="h-[27px] w-[85px] object-contain"
               />
+              {/* Figma crops the Barclays artwork out of a larger canvas. */}
+              <div className="relative h-[27px] w-[139px] overflow-hidden">
+                <Image
+                  src={logoBarclays}
+                  alt="Barclays"
+                  width={172}
+                  height={114}
+                  className="absolute max-w-none"
+                  style={{ width: 171.6, height: 114.4, left: -16.3, top: -43.4 }}
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* handwritten call-out, desktop only */}
+        <div className="mt-9 flex justify-center lg:mt-6 lg:justify-end">
+          <CtaButton>Register Now</CtaButton>
+        </div>
+
+        {/*
+          Figma 258:19681 — "Mentor" at 88,96 rotated -7.6deg, the looping
+          arrow at 115,136 mirrored then rotated 4.94deg so its head points
+          down-right into the photo.
+        */}
         <div
           className="pointer-events-none absolute inset-0 hidden lg:block"
           aria-hidden
         >
           <div
             className="absolute flex items-center justify-center"
-            style={{ right: 128, top: 74, width: 92, height: 60 }}
+            style={{ left: 88, top: 96, width: 78, height: 40 }}
           >
-            <span className="rotate-[25.7deg] font-hand text-[30px] leading-none font-bold text-black">
+            <span className="font-hand text-[24px] leading-none font-bold whitespace-nowrap text-black"
+              style={{ transform: "rotate(-7.6deg) skewX(-0.59deg)" }}
+            >
               Mentor
             </span>
           </div>
           <div
             className="absolute"
             style={{
-              right: 212,
-              top: 92,
-              width: 55.026,
-              height: 77.4352,
-              transform: "scaleX(-1) rotate(-101.5deg)",
+              left: 115,
+              top: 136,
+              width: 62.7,
+              height: 81.1,
+              transform: "scaleX(-1) rotate(4.94deg) skewX(1.42deg)",
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/curriculum/arrow.svg"
+              src="/images/curriculum/arrow-mentor.svg"
               alt=""
-              width={55.026}
-              height={77.4352}
+              className="block size-full"
             />
           </div>
         </div>
